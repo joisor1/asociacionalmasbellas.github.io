@@ -1,0 +1,4 @@
+# Añade aquí el nombre de cada imagen de esta carpeta, una por línea.
+unnamed.jpg
+vida-silla.jpg
+vida.jpg

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d2d">
+  <meta name="description" content="Participa en la rifa solidaria de Asociación Almas Bellas y ayuda a financiar tratamientos médicos para animales rescatados.">
+  <title>Rifa solidaria | Asociación Almas Bellas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="raffle-page">
+  <header class="site-header">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="logo" href="index.html#inicio" aria-label="Asociación Almas Bellas, inicio"><img class="logo-mark" src="media/web/dog-footprint.svg" alt=""><span class="logo-text"><span class="logo-name">Asociación Almas Bellas</span><span class="logo-subtitle">RESCATE ANIMAL</span></span></a>
+      <div class="nav-menu" id="main-nav-menu"><a class="nav-link" href="index.html#inicio">Inicio</a><a class="nav-link" href="adopta.html">Adopta</a><a class="nav-link" href="adoptados.html">Adoptados</a><a class="nav-link" href="historias.html">Historias reales</a><a class="nav-link" href="index.html#ayudar">Cómo ayudar</a><a class="nav-link active" href="rifa.html" aria-current="page">Rifa</a><a class="nav-link" href="nosotros.html">Sobre nosotros</a><a class="nav-link" href="nosotros.html#contacto">Contacto</a></div>
+      <div class="nav-actions"><a class="btn btn-primary donate-nav" href="index.html#ayudar">♥ <span>Donar</span></a></div>
+      <button class="mobile-nav-toggle" type="button" aria-label="Abrir menú" aria-controls="main-nav-menu" aria-expanded="false">☰</button>
+    </nav>
+  </header>
+  <main class="raffle-main container">
+    <section class="raffle-hero" aria-labelledby="raffle-title">
+      <div class="raffle-heading"><span class="raffle-icon" aria-hidden="true">🎟</span><h1 id="raffle-title">Rifa solidaria</h1></div>
+      <p class="eyebrow">Cada participación ayuda</p>
+      <a class="btn btn-primary" href="https://wa.me/34649776448?text=Hola%2C%20quiero%20participar%20en%20la%20rifa%20solidaria" target="_blank" rel="noopener noreferrer">Quiero participar por WhatsApp</a>
+    </section>
+    <section class="raffle-layout" aria-labelledby="raffle-table-title">
+      <div class="raffle-prizes">
+        <p class="raffle-kicker">INFORMACIÓN DE LA RIFA</p>
+        <h2 id="raffle-table-title">Premios y precio</h2>
+        <table class="raffle-prize-table">
+          <thead><tr><th scope="col">Fecha del sorteo</th><th scope="col">Precio por número</th></tr></thead>
+          <tbody><tr><td id="raffle-date">Cargando…</td><td id="raffle-price">Cargando…</td></tr></tbody>
+        </table>
+        <p id="raffle-prize-description" class="raffle-prize-description">Cargando descripción del premio…</p>
+        <div id="raffle-gallery" class="raffle-gallery" aria-label="Imágenes de los premios"></div>
+        <p id="raffle-gallery-status" class="raffle-pending-note"></p>
+      </div>
+      <div class="raffle-numbers-panel">
+        <h2>Números de la rifa</h2>
+        <p id="raffle-number-status" class="raffle-number-status" role="status" aria-live="polite">Cargando números desde Rifa.xlsx…</p>
+        <p class="raffle-number-legend"><span aria-hidden="true"><img class="paw-inline" src="media/web/dog-footprint.svg" alt=""></span> Número comprado</p>
+        <div class="raffle-number-grid" id="raffle-numbers" aria-label="Números de la rifa"></div>
+      </div>
+    </section>
+    <section class="raffle-info" aria-labelledby="raffle-info-title">
+      <h2 id="raffle-info-title">Instrucciones del sorteo</h2>
+      <p>Los envíos se realizarán a nivel nacional</p>
+      <p>El número ganador se determinará con los últimos 3 dígitos del número premiado en el sorteo de la Lotería Nacional correspondiente al día seleccionado</p>
+      <p>Para más información o comprar un número, escríbenos por WhatsApp al <a class="raffle-email" href="https://wa.me/34649776448" target="_blank" rel="noopener noreferrer">649 776 448</a>.</p>
+    </section>
+    <p class="raffle-back"><a href="index.html#ayudar">← Volver a cómo ayudar</a></p>
+  </main>
+  <footer class="footer" id="contacto"><div class="container"><div class="footer-grid"><div class="footer-column"><a class="footer-logo" href="index.html#inicio"><span class="logo-name">Asociación Almas Bellas</span><span class="logo-subtitle">RESCATE ANIMAL</span></a><div class="footer-social"><a href="https://instagram.com" aria-label="Instagram">◎</a><a href="https://facebook.com" aria-label="Facebook">f</a><a href="https://youtube.com" aria-label="YouTube">▶</a></div></div><div class="footer-column"><h3>Contacto</h3><div class="footer-contact"><a class="contact-item" href="mailto:almas.bellas22@gmail.com"><span class="contact-icon">✉</span>almas.bellas22@gmail.com</a><span class="contact-item"><span class="contact-icon">⌖</span>L’Hospitalet de Llobregat, España</span></div></div></div><div class="footer-bottom"><p>© 2026 Asociación Almas Bellas. Todos los derechos reservados.</p><div class="footer-legal"><a href="#contacto">Aviso legal</a><a href="#contacto">Política de privacidad</a><a href="#contacto">Política de cookies</a></div></div></div></footer>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="rifa.js"></script>
+</body>
+</html>

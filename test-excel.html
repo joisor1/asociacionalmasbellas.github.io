@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#173d2d">
+  <title>Prueba de lectura de Google Sheets | Asociación Almas Bellas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="test-excel.js"></script>
+</head>
+<body class="excel-test-page">
+  <main class="excel-test container">
+    <a class="excel-test-back" href="index.html">← Volver a Asociación Almas Bellas</a>
+    <header class="excel-test-header">
+      <span class="excel-test-mark" aria-hidden="true">📊</span>
+      <p class="eyebrow">Herramienta de diagnóstico</p>
+      <h1>Lectura de Google Sheets</h1>
+      <p>Comprueba la hoja que alimenta la sección de perros.</p>
+    </header>
+
+    <section class="excel-test-card" aria-labelledby="result-heading">
+      <div class="excel-test-card-heading">
+        <div><p class="excel-test-kicker">GOOGLE SHEETS</p><h2 id="result-heading">Estado de lectura</h2></div>
+        <span id="test-badge" class="excel-test-badge is-loading">Pendiente</span>
+      </div>
+      <p id="test-message" class="excel-test-message" role="status" aria-live="polite">Pulsa para leer el archivo.</p>
+      <dl class="excel-test-details">
+        <div><dt>Fuente</dt><dd><code>Sheet1</code></dd></div>
+        <div><dt>Hoja</dt><dd id="sheet-name">—</dd></div>
+        <div><dt>Columnas obligatorias</dt><dd id="column-status">Pendiente</dd></div>
+        <div><dt>Filas con datos</dt><dd id="row-count">—</dd></div>
+        <div><dt>Perros publicables</dt><dd id="published-count">—</dd></div>
+      </dl>
+      <div id="preview-wrap" class="excel-test-preview" hidden>
+        <h3>Vista previa de filas</h3>
+        <div class="excel-test-table-scroll"><table><thead><tr><th>Nombre</th><th>Edad</th><th>Estado web</th><th>Web</th></tr></thead><tbody id="preview-rows"></tbody></table></div>
+      </div>
+      <button id="run-test" class="btn btn-primary excel-test-button" type="button">Probar lectura</button>
+    </section>
+    <p class="excel-test-note">La página de diagnóstico solo lee la hoja publicada; para editarla, usa la zona de administración.</p>
+  </main>
+</body>
+</html>
