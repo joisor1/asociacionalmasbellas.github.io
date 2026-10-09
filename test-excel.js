@@ -1,4 +1,4 @@
-import { loadPublicSheet } from "./google-sheets-public.js";
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
 
 const badge = document.querySelector("#test-badge");
 const message = document.querySelector("#test-message");
@@ -27,7 +27,7 @@ async function runTest() {
   previewRows.replaceChildren();
   badge.className = "excel-test-badge is-loading";
   badge.textContent = "En curso";
-  message.textContent = "Leyendo Sheet1 desde Google Sheets…";
+  message.textContent = "Descargando y leyendo Animales.xlsx…";
   columnStatus.textContent = "Pendiente";
   rowCount.textContent = "—";
   publishedCount.textContent = "—";
@@ -35,8 +35,13 @@ async function runTest() {
 
   try {
     const currentSheetName = "Sheet1";
-    const [rawHeaders, ...rows] = await loadPublicSheet(currentSheetName);
-    const headers = (rawHeaders ?? []).map(normalize);
+    const response = await fetch("./assets/database/Animales.xlsx", { cache: "no-store" });
+    if (!response.ok) throw new Error(`El servidor respondió ${response.status} al solicitar el archivo.`);
+    const workbook = XLSX.read(await response.arrayBuffer());
+    const sheet = workbook.Sheets[currentSheetName];
+    if (!sheet) throw new Error(`No existe la hoja ${currentSheetName} en Animales.xlsx.`);
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+    const headers = (rows.shift() ?? []).map(normalize);
     const nameIndex = headers.indexOf("nombre");
     const ageIndex = headers.indexOf("edad");
     const descriptionIndex = headers.indexOf("descripcion");
@@ -72,9 +77,9 @@ async function runTest() {
     previewWrap.hidden = false;
     setResult("success", "Lectura correcta", `${publishedRows.length} perro(s) tienen datos completos y se mostrarían en la página principal.`);
   } catch (error) {
-    console.error("Diagnóstico de Google Sheets:", error);
+    console.error("Diagnóstico de Animales.xlsx:", error);
     columnStatus.textContent = "No disponible";
-    setResult("error", "No se pudo leer", "Comprueba que Sheet1 esté publicada en Google Sheets y abre esta página desde la web publicada o desde un servidor local.");
+    setResult("error", "No se pudo leer", "Comprueba que Animales.xlsx esté en assets/database y abre esta página desde la web publicada o desde un servidor local.");
   } finally {
     runButton.disabled = false;
   }

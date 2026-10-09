@@ -1,6 +1,6 @@
 # Administración de animales
 
-La página `/admin/admin.html` solicita acceso de Google y muestra una tarjeta por cada fila con nombre de `Sheet1`, incluyendo estados no publicados. El formulario de `/admin/login.html` lee, crea, actualiza y elimina filas de `Sheet1` (en adopción) y `Sheet2` (adoptados) en la hoja configurada en `config.js`. La web pública lee esas mismas dos pestañas; al recargar, muestra los cambios guardados.
+La página `/admin/admin.html` solicita acceso de Google y muestra una tarjeta por cada fila con nombre de `Sheet1`, incluyendo estados no publicados. El formulario de `/admin/login.html` lee, crea, actualiza y elimina filas de `Sheet1` (en adopción) y `Sheet2` (adoptados) en la hoja configurada en `config.js`. Las páginas públicas leen el archivo `assets/database/Animales.xlsx`; para pasar los cambios de la hoja a la web, exporta el libro actualizado como Excel y reemplaza ese archivo.
 
 ## Configuración de Google
 
@@ -10,7 +10,7 @@ La página `/admin/admin.html` solicita acceso de Google y muestra una tarjeta p
    - `http://localhost:8000` para desarrollo local
 3. En la pantalla de consentimiento, añade como usuarios de prueba las cuentas que van a usar el formulario mientras la aplicación esté en modo de prueba.
 4. Comparte el Google Sheet con las cuentas administradoras como **Editor**. Una cuenta con permiso de solo lectura podrá ver el panel, pero Google rechazará sus cambios. No hace falta publicar un `client_secret` ni guardarlo en el repositorio.
-5. En Google Sheets, publica solo las pestañas `Sheet1` y `Sheet2` para la web. No publiques el documento completo si contiene otras pestañas privadas. La publicación permite que la web pública lea los datos sin iniciar sesión; el formulario sigue necesitando una cuenta con permiso de Editor.
+5. No hace falta publicar la hoja para la web. La página admin accede con OAuth; las páginas públicas usan el archivo XLSX incluido en el sitio.
 6. Comprueba que la primera fila de `Sheet1` tenga `Nombre`, `Edad` y `Descripción`; `Sheet2` debe tener `Nombre`. Se reconocen los encabezados existentes `Edad`, `Género`, `Raza`, `Carpeta`, `Teléfono`, `Descripción` y `Estado web`.
 
 La página pide permiso OAuth de Google Sheets para editar el archivo seleccionado en `config.js`. Es un alcance sensible de Google; para uso público puede ser necesario verificar la pantalla de consentimiento. Mientras el consentimiento esté en modo de prueba, solo podrán autorizarse los usuarios de prueba.
@@ -19,6 +19,8 @@ La página pide permiso OAuth de Google Sheets para editar el archivo selecciona
 
 La carpeta de Drive se abre desde el panel de administración. Comparte esa carpeta con las cuentas que necesiten subir fotos. En la columna `Carpeta`, escribe el nombre de la carpeta de cada animal dentro de `media/animales`; la web pública buscará allí `00.jpg` y las imágenes de la galería.
 
-## Fuente pública
+## Sincronización del sitio público
 
-La web pública lee las pestañas publicadas en Google Sheets y conserva el comportamiento de filtrado por `Estado web`. La hoja publicada será visible para cualquier persona; no guardes ahí datos privados. La lista opcional `allowedAdminEmails` en `config.js` puede limitar qué cuentas ven el formulario, pero los permisos de Editor del propio Google Sheet son los que autorizan las escrituras.
+El libro de Google Sheets y el archivo XLSX publicado son fuentes separadas. Los cambios guardados con el formulario no se reflejan automáticamente en las páginas públicas: después de editar, descarga/exporta la hoja como `.xlsx` y sustituye `assets/database/Animales.xlsx` en el repositorio. Los datos del sitio solo se actualizan cuando se publica esa nueva versión.
+
+La lista opcional `allowedAdminEmails` en `config.js` puede limitar qué cuentas ven el formulario; los permisos de Editor de Google Sheets autorizan las escrituras.

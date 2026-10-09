@@ -239,7 +239,7 @@ async function saveRecord(event) {
     closeForm();
     await loadAllSheets();
     renderRecords();
-    setSheetStatus("Guardado en Google Sheets. La web pública leerá estos datos al recargarse.", "success");
+    setSheetStatus("Guardado en Google Sheets. Para reflejarlo en la web pública, exporta y sustituye Animales.xlsx.", "success");
   } catch (error) {
     setSheetStatus(error.message, "error");
   } finally {

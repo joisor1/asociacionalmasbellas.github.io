@@ -1,4 +1,5 @@
-import { loadPublicSheet } from "./google-sheets-public.js";
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
+const workbookUrl = "./assets/database/Animales.xlsx";
 const fallbackImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80";
 const grid = document.querySelector(".adopted-grid");
 const status = document.querySelector("#adopted-status");
@@ -194,9 +195,13 @@ function showAdoptedGalleryImage(index, name = document.querySelector("#adopted-
 
 async function loadAdopted() {
   try {
-    const sheetRows = await loadPublicSheet("Sheet2");
-    const [headers, ...rows] = sheetRows;
-    if (!headers) throw new Error("La hoja Sheet2 está vacía o no se ha publicado.");
+    const response = await fetch(workbookUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`No se pudo descargar Animales.xlsx (${response.status}).`);
+    const workbook = XLSX.read(await response.arrayBuffer());
+    const sheet = workbook.Sheets.Sheet2;
+    if (!sheet) throw new Error("El archivo no contiene la hoja Sheet2.");
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+    const headers = rows.shift() ?? [];
     const nameIndex = getColumn(headers, "nombre", "name");
     const folderIndex = getColumn(headers, "carpeta", "folder");
     if (nameIndex < 0) throw new Error("Sheet2 necesita una columna Nombre.");
@@ -212,7 +217,7 @@ async function loadAdopted() {
   } catch (error) {
     console.error("No se pudieron cargar los animales adoptados:", error);
     grid.innerHTML = "";
-    setStatus("No se pudieron cargar los animales adoptados. Comprueba que Sheet2 esté publicada en Google Sheets.");
+    setStatus("No se pudieron cargar los animales adoptados desde Animales.xlsx. Comprueba que exista la hoja Sheet2.");
   }
 }
 

@@ -1,5 +1,4 @@
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
-import { loadPublicSheet } from "./google-sheets-public.js";
 
 const navToggle = document.querySelector(".mobile-nav-toggle");
 const navMenu = document.querySelector("#main-nav-menu");
@@ -25,6 +24,7 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeMobileMenu();
 });
 
+const workbookUrl = "./assets/database/Animales.xlsx";
 const phoneWorkbookUrl = "./assets/database/info.xlsx";
 const phoneSheetName = "telefonos";
 const fallbackImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80";
@@ -217,11 +217,16 @@ function showCarouselImage(dialog, index, animalName = dialog.querySelector("#an
 
 async function loadAnimals() {
   if (!grid) return;
-  setStatus("Cargando animales…");
+  setStatus("Cargando animales desde Animales.xlsx…");
   try {
-    const [sheetRows, phoneDirectory] = await Promise.all([loadPublicSheet("Sheet1"), loadPhoneDirectory()]);
-    const [headers, ...rows] = sheetRows;
-    if (!headers) throw new Error("La hoja Sheet1 está vacía o no se ha publicado.");
+    const response = await fetch(workbookUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`No se pudo descargar Animales.xlsx (${response.status}).`);
+    const [workbookData, phoneDirectory] = await Promise.all([response.arrayBuffer(), loadPhoneDirectory()]);
+    const workbook = XLSX.read(workbookData);
+    const sheet = workbook.Sheets.Sheet1;
+    if (!sheet) throw new Error("El archivo no contiene la hoja Sheet1.");
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+    const headers = rows.shift() ?? [];
     const nameIndex = getColumn(headers, "nombre", "name");
     const ageIndex = getColumn(headers, "edad", "age");
     const genderIndex = getColumn(headers, "genero", "sexo", "gender");
@@ -252,9 +257,9 @@ async function loadAnimals() {
 
     renderAnimals(showAllAnimals ? animals : animals.slice(0, maxAnimals));
   } catch (error) {
-    console.error("No se pudieron leer los animales de Google Sheets:", error);
+    console.error("No se pudo leer Animales.xlsx:", error);
     grid.innerHTML = "";
-    setStatus("No se pudieron cargar los animales. Comprueba que Sheet1 esté publicada en Google Sheets y tenga las columnas necesarias.");
+    setStatus("No se pudieron cargar los animales desde Animales.xlsx. Comprueba que el archivo esté publicado en assets/database y tenga las columnas necesarias.");
   }
 }
 
