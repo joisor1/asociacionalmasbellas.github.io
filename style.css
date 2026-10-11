@@ -68,9 +68,11 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+    min-width: 250px;
 }
 
 body {
+    min-width: 250px;
     min-height: 100vh;
     background: var(--white);
     color: var(--text);
@@ -164,6 +166,7 @@ h3 {
 
 .container {
     width: min(100% - 48px, var(--container));
+    min-width: 0;
     margin-inline: auto;
 }
 
@@ -278,6 +281,7 @@ h3 {
 }
 
 .navbar {
+    min-width: 250px;
     min-height: 82px;
 
     display: flex;
@@ -1448,7 +1452,7 @@ h3 {
 @media (max-width: 768px) {
 
     .container {
-        width: min(100% - 30px, var(--container));
+        width: min(100% - 20px, var(--container));
     }
 
     .section {
@@ -1668,6 +1672,18 @@ h3 {
    ========================================================= */
 
 @media (max-width: 480px) {
+
+    .container {
+        width: min(100% - 12px, var(--container));
+    }
+
+    .navbar .donate-nav {
+        display: none;
+    }
+
+    .navbar .logo-name {
+        font-size: clamp(0.82rem, 4.2vw, 1.05rem);
+    }
 
     .hero-content {
         padding: 45px 17px 30px;

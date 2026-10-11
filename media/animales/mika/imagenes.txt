@@ -1,2 +1,3 @@
-00.jpg
-01.jpg
+00.jpeg
+01.jpeg
+02.jpeg
