@@ -8,7 +8,7 @@ const date = document.querySelector("#raffle-date");
 const prizeDescription = document.querySelector("#raffle-prize-description");
 const gallery = document.querySelector("#raffle-gallery");
 const galleryStatus = document.querySelector("#raffle-gallery-status");
-const paw = "🐾";
+const purchasedIconPath = "./media/web/dog-footprint.svg";
 
 function cellText(cell) {
   if (!cell || cell.v === undefined || cell.v === null || String(cell.v).trim() === "") return "";
@@ -77,7 +77,15 @@ async function loadRaffleNumbers() {
     for (let number = 1; number <= maxNumber; number += 1) {
       const item = document.createElement("span");
       item.className = purchased.has(number) ? "raffle-number is-purchased" : "raffle-number";
-      item.textContent = purchased.has(number) ? paw : String(number);
+      if (purchased.has(number)) {
+        const icon = document.createElement("img");
+        icon.src = purchasedIconPath;
+        icon.alt = "";
+        icon.className = "raffle-purchased-icon";
+        item.append(icon);
+      } else {
+        item.textContent = String(number);
+      }
       item.setAttribute("aria-label", purchased.has(number) ? `Número ${number}, comprado` : `Número ${number}, disponible`);
       numbers.append(item);
     }
