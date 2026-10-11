@@ -132,7 +132,7 @@ async function appendAdoptedPhotoCards() {
       frame.append(image);
       card.append(frame);
 
-      const open = () => openAdoptedGallery(card.dataset.animalName, "", card.dataset.photo);
+      const open = () => openAdoptedGallery("", "", card.dataset.photo);
       card.addEventListener("click", open);
       card.addEventListener("keydown", event => {
         if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
@@ -167,7 +167,8 @@ function layoutMural() {
     const imageRatio = Number(card.style.getPropertyValue("--adopted-image-ratio")) || 1;
     const baseSize = Math.sqrt(width * height / itemCount) * 0.62;
     const maxWidth = Math.min(330, width * 0.92, height * 0.76 * imageRatio, baseSize * Number(card.dataset.muralScale));
-    const size = Math.max(Math.min(64, width * 0.92), maxWidth * densityScale);
+    const minCardWidth = Math.min(130, Math.max(90, width * 0.24));
+    const size = Math.max(minCardWidth, maxWidth * densityScale);
     const cardHeight = size / imageRatio;
     const left = Math.max(0, Number(card.dataset.muralX) * Math.max(0, width - size));
     const top = Math.max(0, Number(card.dataset.muralY) * Math.max(0, height - cardHeight));
@@ -226,14 +227,23 @@ async function openAdoptedGallery(name, folder, singlePhoto = "") {
 
   galleryImages = [];
   dialog.classList.remove("single-image");
-  dialog.querySelector("#adopted-gallery-title").textContent = name;
+  const galleryTitle = dialog.querySelector("#adopted-gallery-title");
+  galleryTitle.textContent = singlePhoto ? "" : name;
+  galleryTitle.hidden = Boolean(singlePhoto);
+  if (singlePhoto) {
+    dialog.removeAttribute("aria-labelledby");
+    dialog.setAttribute("aria-label", "Foto de animal adoptado");
+  } else {
+    dialog.setAttribute("aria-labelledby", "adopted-gallery-title");
+    dialog.removeAttribute("aria-label");
+  }
   dialog.querySelector(".adopted-gallery-image").src = fallbackImage;
   if (!dialog.open) dialog.showModal();
   const images = singlePhoto ? [singlePhoto] : await getAnimalImages(folder);
   if (requestId !== galleryRequestId || !dialog.open) return;
   galleryImages = images;
   galleryIndex = 0;
-  showAdoptedGalleryImage(0, name);
+  showAdoptedGalleryImage(0, singlePhoto ? "" : name);
 }
 
 function showAdoptedGalleryImage(index, name = document.querySelector("#adopted-gallery-title")?.textContent ?? "") {
@@ -243,7 +253,7 @@ function showAdoptedGalleryImage(index, name = document.querySelector("#adopted-
   dialog.classList.toggle("single-image", galleryImages.length === 1);
   const image = dialog.querySelector(".adopted-gallery-image");
   image.src = galleryImages[galleryIndex];
-  image.alt = `${name}, imagen ${galleryIndex + 1} de ${galleryImages.length}`;
+  image.alt = name ? `${name}, imagen ${galleryIndex + 1} de ${galleryImages.length}` : `Foto ${galleryIndex + 1} de ${galleryImages.length}`;
   image.onerror = () => {
     image.onerror = null;
     galleryImages.splice(galleryIndex, 1);
