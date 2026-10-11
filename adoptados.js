@@ -1,5 +1,6 @@
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
 const workbookUrl = "./assets/database/Animales.xlsx";
+const adoptedPhotosApiUrl = "https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/animales/adoptados%20varios?ref=main";
 const fallbackImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80";
 const grid = document.querySelector(".adopted-grid");
 const status = document.querySelector("#adopted-status");
@@ -56,7 +57,7 @@ function renderAdopted(animals) {
   }).join("");
 
   grid.querySelectorAll(".adopted-card").forEach(card => {
-    const open = () => openAdoptedGallery(card.dataset.animalName, card.dataset.animalFolder);
+    const open = () => openAdoptedGallery(card.dataset.animalName, card.dataset.animalFolder, card.dataset.photo);
     card.addEventListener("click", open);
     card.addEventListener("keydown", event => {
       if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
@@ -80,6 +81,73 @@ function renderAdopted(animals) {
   layoutMural();
 }
 
+async function appendAdoptedPhotoCards() {
+  try {
+    const folderUrl = "./media/animales/adoptados%20varios/";
+    let photos = [];
+    const folderResponse = await fetch(folderUrl, { cache: "no-store" });
+    if (folderResponse.ok) {
+      const listing = new DOMParser().parseFromString(await folderResponse.text(), "text/html");
+      const folderPath = new URL(folderUrl, window.location.href).pathname;
+      photos = [...listing.querySelectorAll("a[href]")]
+        .map(link => {
+          const url = new URL(link.getAttribute("href"), folderResponse.url);
+          const name = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() ?? "");
+          return url.origin === window.location.origin && url.pathname.startsWith(folderPath) && /\.(avif|gif|jpe?g|png|webp)$/i.test(name) ? { name } : null;
+        })
+        .filter(Boolean);
+    }
+    if (!photos.length) {
+      const response = await fetch(adoptedPhotosApiUrl, { headers: { Accept: "application/vnd.github+json" } });
+      if (!response.ok) throw new Error(`No se pudo listar la carpeta ni consultar GitHub (${response.status}).`);
+      const files = await response.json();
+      photos = files.filter(file => file.type === "file" && /\.(avif|gif|jpe?g|png|webp)$/i.test(file.name));
+    }
+    photos.sort((a, b) => a.name.localeCompare(b.name, "es", { numeric: true }));
+
+    photos.forEach((file, index) => {
+      const source = `./media/animales/adoptados%20varios/${encodeURIComponent(file.name)}`;
+      const card = document.createElement("article");
+      card.className = "adopted-card";
+      card.tabIndex = 0;
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-haspopup", "dialog");
+      card.setAttribute("aria-label", `Ver foto de animal adoptado ${index + 1}`);
+      card.dataset.animalName = `Adoptado ${index + 1}`;
+      card.dataset.photo = source;
+
+      const frame = document.createElement("div");
+      frame.className = "adopted-image-frame";
+      const image = document.createElement("img");
+      image.className = "adopted-image";
+      image.src = source;
+      image.alt = `Animal adoptado ${index + 1}`;
+      image.loading = "lazy";
+      image.addEventListener("load", () => {
+        const ratio = Math.max(9 / 16, Math.min(16 / 9, image.naturalWidth / image.naturalHeight));
+        card.style.setProperty("--adopted-image-ratio", String(ratio));
+        layoutMural();
+      });
+      image.addEventListener("error", () => card.remove(), { once: true });
+      frame.append(image);
+      card.append(frame);
+
+      const open = () => openAdoptedGallery(card.dataset.animalName, "", card.dataset.photo);
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", event => {
+        if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        open();
+      });
+      grid.append(card);
+    });
+    layoutMural();
+    return photos.length;
+  } catch (error) {
+    console.warn("No se pudieron detectar automáticamente las fotos de adoptados varios:", error);
+    return -1;
+  }
+}
 function layoutMural() {
   if (!grid?.children.length) return;
   const width = grid.clientWidth;
@@ -138,7 +206,7 @@ function getAnimalImages(folder) {
   return imagesPromise;
 }
 
-async function openAdoptedGallery(name, folder) {
+async function openAdoptedGallery(name, folder, singlePhoto = "") {
   const requestId = ++galleryRequestId;
   let dialog = document.querySelector("#adopted-gallery-dialog");
   if (!dialog) {
@@ -161,7 +229,7 @@ async function openAdoptedGallery(name, folder) {
   dialog.querySelector("#adopted-gallery-title").textContent = name;
   dialog.querySelector(".adopted-gallery-image").src = fallbackImage;
   if (!dialog.open) dialog.showModal();
-  const images = await getAnimalImages(folder);
+  const images = singlePhoto ? [singlePhoto] : await getAnimalImages(folder);
   if (requestId !== galleryRequestId || !dialog.open) return;
   galleryImages = images;
   galleryIndex = 0;
@@ -194,6 +262,7 @@ function showAdoptedGalleryImage(index, name = document.querySelector("#adopted-
 }
 
 async function loadAdopted() {
+  let animals = [];
   try {
     const response = await fetch(workbookUrl, { cache: "no-store" });
     if (!response.ok) throw new Error(`No se pudo descargar Animales.xlsx (${response.status}).`);
@@ -204,20 +273,27 @@ async function loadAdopted() {
     const headers = rows.shift() ?? [];
     const nameIndex = getColumn(headers, "nombre", "name");
     const folderIndex = getColumn(headers, "carpeta", "folder");
-    if (nameIndex < 0) throw new Error("Sheet2 necesita una columna Nombre.");
-    const animals = rows.map(row => ({ name: String(row[nameIndex] ?? "").trim(), folder: folderIndex < 0 ? "" : String(row[folderIndex] ?? "").trim() }))
-      .filter(animal => animal.name);
-    if (!animals.length) {
-      grid.innerHTML = "";
-      setStatus("Todavía no hay animales en Sheet2.");
-      return;
+    if (nameIndex >= 0) {
+      animals = rows.map(row => ({ name: String(row[nameIndex] ?? "").trim(), folder: folderIndex < 0 ? "" : String(row[folderIndex] ?? "").trim() }))
+        .filter(animal => animal.name);
+    } else {
+      console.warn("Sheet2 no tiene columna Nombre; se añadirán las fotos detectadas en la carpeta.");
     }
-    renderAdopted(animals);
-    setStatus("", false);
   } catch (error) {
-    console.error("No se pudieron cargar los animales adoptados:", error);
-    grid.innerHTML = "";
-    setStatus("No se pudieron cargar los animales adoptados desde Animales.xlsx. Comprueba que exista la hoja Sheet2.");
+    console.warn("No se pudieron cargar los datos de Animales.xlsx:", error);
+  }
+
+  grid.innerHTML = "";
+  if (animals.length) renderAdopted(animals);
+  const photoCount = await appendAdoptedPhotoCards();
+  if (photoCount < 0 && !animals.length) {
+    setStatus("No se pudieron cargar tarjetas del XLSX ni detectar las fotos de la carpeta.");
+  } else if (photoCount < 0) {
+    setStatus("Se muestran las tarjetas del XLSX, pero no se pudieron detectar las fotos de la carpeta.");
+  } else if (!animals.length && photoCount === 0) {
+    setStatus("No se encontraron animales en el XLSX ni fotos en la carpeta.");
+  } else {
+    setStatus("", false);
   }
 }
 
