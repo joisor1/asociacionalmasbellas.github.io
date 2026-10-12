@@ -31,8 +31,10 @@
         <p class="raffle-kicker">INFORMACIÓN DE LA RIFA</p>
         <h2 id="raffle-table-title">Premios y precio</h2>
         <table class="raffle-prize-table">
-          <thead><tr><th scope="col">Fecha del sorteo</th><th scope="col">Precio por número</th></tr></thead>
-          <tbody><tr><td id="raffle-date">Cargando…</td><td id="raffle-price">Cargando…</td></tr></tbody>
+          <tbody>
+            <tr><th scope="row">Precio por número</th><td id="raffle-price">Cargando…</td></tr>
+            <tr><th scope="row">Fecha del sorteo</th><td id="raffle-date">Cargando…</td></tr>
+          </tbody>
         </table>
         <p id="raffle-prize-description" class="raffle-prize-description">Cargando descripción del premio…</p>
         <div class="raffle-gallery-carousel"><button class="raffle-gallery-control raffle-gallery-prev" type="button" aria-label="Imagen anterior" hidden>‹</button><div id="raffle-gallery" class="raffle-gallery" aria-label="Imágenes de los premios"></div><button class="raffle-gallery-control raffle-gallery-next" type="button" aria-label="Imagen siguiente" hidden>›</button></div>
@@ -45,16 +47,22 @@
         <div class="raffle-number-grid" id="raffle-numbers" aria-label="Números de la rifa"></div>
       </div>
     </section>
+    <section class="raffle-info raffle-prize-showcase" aria-labelledby="raffle-prize-title">
+      <h2 id="raffle-prize-title">Premio</h2>
+      <p id="raffle-prize-text">Cargando información del premio…</p>
+      <div id="raffle-prize-gallery" class="raffle-prize-gallery" aria-label="Imágenes del premio"></div>
+      <p id="raffle-prize-gallery-status" class="raffle-pending-note"></p>
+    </section>
     <section class="raffle-info" aria-labelledby="raffle-info-title">
       <h2 id="raffle-info-title">Instrucciones del sorteo</h2>
       <p>Los envíos se realizarán a nivel nacional</p>
-      <p>El número ganador se determinará con los últimos 3 dígitos del número premiado en el sorteo de la Lotería Nacional correspondiente al día seleccionado</p>
+      <p>El sorteo se realizará una vez se hayan comprado todos los numeros de la rifa. El número ganador será elegido por la IA dandole a elegir aleatoriamente un número. Todo este proceso será retransmitido en directo por Instagram</p>
       <p>Para más información o comprar un número, escríbenos por WhatsApp al <a class="raffle-email" href="https://wa.me/34649776448" target="_blank" rel="noopener noreferrer">649 776 448</a>.</p>
     </section>
     <p class="raffle-back"><a href="index.html#ayudar">← Volver a cómo ayudar</a></p>
   </main>
   <footer class="footer" id="contacto"><div class="container"><div class="footer-grid"><div class="footer-column"><a class="footer-logo" href="index.html#inicio"><span class="logo-name">Asociación Almas Bellas</span><span class="logo-subtitle">RESCATE ANIMAL</span></a><div class="footer-social"><a href="https://instagram.com" aria-label="Instagram">◎</a><a href="https://facebook.com" aria-label="Facebook">f</a><a href="https://youtube.com" aria-label="YouTube">▶</a></div></div><div class="footer-column"><h3>Contacto</h3><div class="footer-contact"><a class="contact-item" href="mailto:almas.bellas22@gmail.com"><span class="contact-icon">✉</span>almas.bellas22@gmail.com</a><span class="contact-item"><span class="contact-icon">⌖</span>L’Hospitalet de Llobregat, España</span></div></div></div><div class="footer-bottom"><p>© 2026 Asociación Almas Bellas. Todos los derechos reservados.</p><div class="footer-legal"><a href="#contacto">Aviso legal</a><a href="#contacto">Política de privacidad</a><a href="#contacto">Política de cookies</a></div></div></div></footer>
   <script type="module" src="app.js"></script>
-  <script type="module" src="rifa.js?v=2"></script>
+  <script type="module" src="rifa.js?v=5"></script>
 </body>
 </html>

@@ -1969,7 +1969,7 @@ h3 {
 .excel-test-button:disabled { cursor:wait; opacity:.65; }
 .excel-test-preview[hidden] { display:none; }
 .excel-test-table-scroll { overflow-x:auto; }
-.excel-test-preview table { width:100%; border-collapse:collapse; text-align:left; font-size:.86rem; }
+.excel-test-preview table { width:100%; border-collapse:collapse; text-align:justify; font-size:.86rem; }
 .excel-test-preview th, .excel-test-preview td { padding:10px 8px; border-bottom:1px solid var(--border); }
 .excel-test-preview th { color:var(--text-light); font-size:.76rem; }
 .excel-test-row-state { display:inline-block; padding:3px 8px; border-radius:99px; font-size:.74rem; font-weight:800; }
@@ -2149,8 +2149,10 @@ h3 {
 .raffle-prizes, .raffle-numbers-panel { padding:clamp(20px,4vw,32px); border:1px solid var(--border); border-radius:20px; background:var(--white); }
 .raffle-kicker { margin-bottom:8px; color:var(--purple); font-size:.72rem; font-weight:800; letter-spacing:.12em; }
 .raffle-prizes h2, .raffle-numbers-panel h2 { margin-bottom:12px; color:var(--green-dark); }
-.raffle-prize-table { width:100%; border-collapse:collapse; text-align:left; }
-.raffle-prize-table th, .raffle-prize-table td { padding:12px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.raffle-prize-table { display:block; width:100%; border-collapse:collapse; table-layout:fixed; text-align:justify; }
+.raffle-prize-table thead, .raffle-prize-table tbody { display:block; }
+.raffle-prize-table tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.raffle-prize-table th, .raffle-prize-table td { display:block; min-width:0; padding:12px 8px; border-bottom:1px solid var(--border); vertical-align:top; overflow-wrap:anywhere; }
 .raffle-prize-table th { color:var(--text-light); font-size:.8rem; }
 .raffle-prize-description { margin:16px 0; color:var(--text-light); }
 .raffle-gallery-carousel { position:relative; margin-top:18px; }
@@ -2170,6 +2172,14 @@ h3 {
 .raffle-info { max-width:760px; margin:0 auto; padding:28px; border:1px solid var(--border); border-radius:20px; background:var(--white); text-align:center; }
 .raffle-info h2 { margin-bottom:10px; color:var(--green-dark); }
 .raffle-info p { margin-bottom:12px; color:var(--text-light); }
+.raffle-prize-showcase { margin-bottom:24px; }
+.raffle-prize-showcase #raffle-prize-text,
+.raffle-prize-description,
+.raffle-number-status { text-align:justify; }
+.raffle-prize-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:12px; margin-top:18px; }
+.raffle-prize-gallery img { width:100%; height:220px; padding:8px; border:1px solid var(--border); border-radius:14px; background:var(--cream); object-fit:contain; }
+.raffle-prize-gallery:empty { display:none; }
+.raffle-info[aria-labelledby="raffle-info-title"] p { text-align:justify; }
 .raffle-email { color:var(--purple); font-weight:800; }
 .raffle-back { max-width:760px; margin:24px auto 0; }
 .raffle-footer { padding:22px 16px; background:var(--green-dark); color:var(--white); text-align:center; font-size:.84rem; }
@@ -2200,6 +2210,8 @@ h3 {
   .vida-actions .btn { width:100%; }
 }
 @media(max-width:640px) {
+  .raffle-prize-table th, .raffle-prize-table td { padding:10px 4px; }
+  .raffle-prize-table th { font-size:.7rem; }
   .animal-dialog-card { grid-template-columns:1fr; }
   .animal-dialog-image { height:220px; min-height:0; }
   .animal-dialog-content { padding:22px; }
@@ -2210,3 +2222,4 @@ h3 {
   .raffle-main { padding-block:36px; }
   .raffle-layout { grid-template-columns:1fr; }
 }
+body { text-align:justify; }

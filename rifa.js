@@ -6,8 +6,11 @@ const status = document.querySelector("#raffle-number-status");
 const price = document.querySelector("#raffle-price");
 const date = document.querySelector("#raffle-date");
 const prizeDescription = document.querySelector("#raffle-prize-description");
+const prizeText = document.querySelector("#raffle-prize-text");
 const gallery = document.querySelector("#raffle-gallery");
 const galleryStatus = document.querySelector("#raffle-gallery-status");
+const prizeGallery = document.querySelector("#raffle-prize-gallery");
+const prizeGalleryStatus = document.querySelector("#raffle-prize-gallery-status");
 const galleryPrevious = document.querySelector(".raffle-gallery-prev");
 const galleryNext = document.querySelector(".raffle-gallery-next");
 const purchasedIconPath = "./media/web/dog-footprint.svg";
@@ -22,6 +25,18 @@ function updateGalleryControls() {
 function cellText(cell) {
   if (!cell || cell.v === undefined || cell.v === null || String(cell.v).trim() === "") return "";
   return String(cell.w ?? cell.v).trim();
+}
+
+function setMultilineText(element, value, fallback) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    element.textContent = fallback;
+    return;
+  }
+  const nodes = text.split(/\r\n?|\n/).flatMap((line, index) =>
+    index ? [document.createElement("br"), document.createTextNode(line)] : [document.createTextNode(line)]
+  );
+  element.replaceChildren(...nodes);
 }
 
 async function loadRaffleImages() {
@@ -69,6 +84,49 @@ async function loadRaffleImages() {
   }
 }
 
+async function loadPrizeImages() {
+  const folderUrl = "./media/rifa/premios/";
+  try {
+    let filenames = [];
+    const folderResponse = await fetch(folderUrl, { cache: "no-store" });
+    if (folderResponse.ok) {
+      const listing = new DOMParser().parseFromString(await folderResponse.text(), "text/html");
+      const folderPath = new URL(folderUrl, window.location.href).pathname;
+      filenames = [...listing.querySelectorAll("a[href]")]
+        .map(link => {
+          const url = new URL(link.getAttribute("href"), folderResponse.url);
+          const name = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() ?? "");
+          return url.origin === window.location.origin && url.pathname.startsWith(folderPath) && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(name) ? name : null;
+        })
+        .filter(Boolean);
+    }
+    if (!filenames.length) {
+      const response = await fetch("https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/rifa/premios?ref=main", { headers: { Accept: "application/vnd.github+json" } });
+      if (!response.ok) throw new Error(`No se pudieron listar las imágenes del premio (${response.status}).`);
+      const files = await response.json();
+      filenames = files
+        .filter(file => file.type === "file" && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(file.name))
+        .map(file => file.name);
+    }
+    filenames.sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
+    const images = document.createDocumentFragment();
+    filenames.forEach(filename => {
+      const image = document.createElement("img");
+      image.src = `${folderUrl}${encodeURIComponent(filename)}`;
+      image.alt = "Premio de la rifa solidaria";
+      image.loading = "lazy";
+      image.addEventListener("error", () => image.remove(), { once: true });
+      images.append(image);
+    });
+    prizeGallery.replaceChildren(images);
+    prizeGalleryStatus.textContent = filenames.length ? "" : "No se encontraron imágenes en media/rifa/premios.";
+  } catch (error) {
+    console.warn("No se pudieron detectar las imágenes del premio:", error);
+    prizeGallery.replaceChildren();
+    prizeGalleryStatus.textContent = "No se pudieron detectar las imágenes de media/rifa/premios.";
+  }
+}
+
 async function loadRaffleNumbers() {
   try {
     const response = await fetch(workbookPath, { cache: "no-store" });
@@ -83,8 +141,10 @@ async function loadRaffleNumbers() {
       ? (typeof sheet.C2?.v === "number" && !/[€$£]/.test(rawPrice) ? `${rawPrice} €` : rawPrice)
       : "Por confirmar";
     date.textContent = cellText(sheet.C3) || "Por confirmar";
-    prizeDescription.textContent = cellText(sheet.C4) || "Descripción del premio por confirmar.";
+    setMultilineText(prizeDescription, sheet.C4?.v, "Descripción del premio por confirmar.");
+    setMultilineText(prizeText, sheet.C5?.v, "Descripción del premio por confirmar.");
     await loadRaffleImages();
+    await loadPrizeImages();
 
     const maxNumber = Number(sheet.C1?.v);
     if (!Number.isInteger(maxNumber) || maxNumber < 1) {
