@@ -37,6 +37,7 @@ const status = document.querySelector("#animals-status");
 let carouselImages = [];
 let carouselIndex = 0;
 let carouselRequestId = 0;
+const animalImageListCache = new Map();
 const normalize = value => String(value ?? "").trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const safeImageUrl = value => {
@@ -124,18 +125,71 @@ function renderAnimals(animals) {
   setStatus("", false);
 }
 
+async function getAnimalImageUrls(folder) {
+  const key = String(folder ?? "").trim();
+  if (!key) return [];
+  if (animalImageListCache.has(key)) return animalImageListCache.get(key);
+  const imagesPromise = (async () => {
+    const folderUrl = `./media/animales/${encodeURIComponent(key)}/`;
+    try {
+      const response = await fetch(folderUrl, { cache: "no-store" });
+      if (response.ok) {
+        const listing = new DOMParser().parseFromString(await response.text(), "text/html");
+        const folderPath = new URL(folderUrl, window.location.href).pathname;
+        const images = [...listing.querySelectorAll("a[href]")]
+          .map(link => {
+            const url = new URL(link.getAttribute("href"), response.url);
+            const name = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() ?? "");
+            return url.origin === window.location.origin && url.pathname.startsWith(folderPath) && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(name)
+              ? `${folderUrl}${encodeURIComponent(name)}`
+              : null;
+          })
+          .filter(Boolean);
+        if (images.length) return images;
+      }
+    } catch (error) {
+      console.info(`El servidor no expone el listado local de ${key}; se probará GitHub.`, error);
+    }
+
+    try {
+      const apiUrl = `https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/animales/${encodeURIComponent(key)}?ref=main`;
+      const response = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
+      if (response.ok) {
+        const files = await response.json();
+        const images = files
+          .filter(file => file.type === "file" && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(file.name))
+          .sort((a, b) => a.name.localeCompare(b.name, "es", { numeric: true }))
+          .map(file => `${folderUrl}${encodeURIComponent(file.name)}`);
+        if (images.length) return images;
+      }
+    } catch (error) {
+      console.info(`No se pudieron detectar las imágenes en GitHub para ${key}.`, error);
+    }
+
+    try {
+      const response = await fetch(`${folderUrl}imagenes.txt`, { cache: "no-store" });
+      if (response.ok) {
+        const filenames = (await response.text()).split(/\r?\n/)
+          .map(filename => filename.trim())
+          .filter(filename => /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(filename));
+        if (filenames.length) return filenames.map(filename => `${folderUrl}${encodeURIComponent(filename)}`);
+      }
+    } catch (error) {
+      console.info(`No se pudo leer imagenes.txt de ${key}.`, error);
+    }
+    return [];
+  })();
+  animalImageListCache.set(key, imagesPromise);
+  return imagesPromise;
+}
+
 async function loadFirstAnimalImage(image, folder) {
   if (!folder) return;
-  const folderUrl = `./media/animales/${encodeURIComponent(folder)}/`;
   try {
-    const response = await fetch(`${folderUrl}imagenes.txt`, { cache: "no-store" });
-    if (!response.ok) return;
-    const firstFilename = (await response.text()).split(/\r?\n/)
-      .map(filename => filename.trim())
-      .find(filename => /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(filename));
-    if (firstFilename) image.src = `${folderUrl}${encodeURIComponent(firstFilename)}`;
+    const images = await getAnimalImageUrls(folder);
+    if (images.length) image.src = images[0];
   } catch (error) {
-    console.warn(`No se pudo leer la lista de imágenes de ${folder}:`, error);
+    console.warn(`No se pudieron detectar imágenes para ${folder}:`, error);
   }
 }
 
@@ -182,19 +236,14 @@ async function loadAnimalCarousel(animal, dialog) {
   if (!animal.folder) return;
 
   try {
-    const folderUrl = `./media/animales/${encodeURIComponent(animal.folder)}/`;
-    const response = await fetch(`${folderUrl}imagenes.txt`, { cache: "no-store" });
-    if (!response.ok) return;
-    const filenames = (await response.text()).split(/\r?\n/)
-      .map(filename => filename.trim())
-      .filter(filename => /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(filename));
-    if (requestId !== carouselRequestId || !dialog.open || filenames.length < 2) return;
-    carouselImages = filenames.map(filename => `${folderUrl}${encodeURIComponent(filename)}`);
+    const images = await getAnimalImageUrls(animal.folder);
+    if (requestId !== carouselRequestId || !dialog.open || images.length < 2) return;
+    carouselImages = images;
     carouselIndex = 0;
     carousel.hidden = false;
     showCarouselImage(dialog, carouselIndex, animal.name);
   } catch (error) {
-    console.warn(`No se pudo leer la galería de ${animal.name}:`, error);
+    console.warn(`No se pudieron detectar fotos de ${animal.name}:`, error);
   }
 }
 

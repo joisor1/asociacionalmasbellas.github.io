@@ -8,7 +8,16 @@ const date = document.querySelector("#raffle-date");
 const prizeDescription = document.querySelector("#raffle-prize-description");
 const gallery = document.querySelector("#raffle-gallery");
 const galleryStatus = document.querySelector("#raffle-gallery-status");
+const galleryPrevious = document.querySelector(".raffle-gallery-prev");
+const galleryNext = document.querySelector(".raffle-gallery-next");
 const purchasedIconPath = "./media/web/dog-footprint.svg";
+galleryPrevious?.addEventListener("click", () => gallery.scrollBy({ left: -gallery.clientWidth, behavior: "smooth" }));
+galleryNext?.addEventListener("click", () => gallery.scrollBy({ left: gallery.clientWidth, behavior: "smooth" }));
+function updateGalleryControls() {
+  const showControls = gallery.children.length > 1;
+  if (galleryPrevious) galleryPrevious.hidden = !showControls;
+  if (galleryNext) galleryNext.hidden = !showControls;
+}
 
 function cellText(cell) {
   if (!cell || cell.v === undefined || cell.v === null || String(cell.v).trim() === "") return "";
@@ -16,28 +25,47 @@ function cellText(cell) {
 }
 
 async function loadRaffleImages() {
+  const folderUrl = "./media/rifa/";
   try {
-    // GitHub Pages and ordinary static servers do not expose directory listings;
-    // the text manifest contains one image filename per line.
-    const response = await fetch("./media/rifa/imagenes.txt", { cache: "no-store" });
-    if (!response.ok) throw new Error("No hay lista de imágenes");
-    const filenames = (await response.text()).split(/\r?\n/)
-      .map((name) => name.trim())
-      .filter((name) => name && /^[\w.-]+\.(avif|gif|jpe?g|png|webp)$/i.test(name));
+    let filenames = [];
+    const folderResponse = await fetch(folderUrl, { cache: "no-store" });
+    if (folderResponse.ok) {
+      const listing = new DOMParser().parseFromString(await folderResponse.text(), "text/html");
+      const folderPath = new URL(folderUrl, window.location.href).pathname;
+      filenames = [...listing.querySelectorAll("a[href]")]
+        .map(link => {
+          const url = new URL(link.getAttribute("href"), folderResponse.url);
+          const name = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() ?? "");
+          return url.origin === window.location.origin && url.pathname.startsWith(folderPath) && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(name) ? name : null;
+        })
+        .filter(Boolean);
+    }
+    if (!filenames.length) {
+      const response = await fetch("https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/rifa?ref=main", { headers: { Accept: "application/vnd.github+json" } });
+      if (!response.ok) throw new Error(`No se pudieron listar las fotos de la rifa (${response.status}).`);
+      const files = await response.json();
+      filenames = files
+        .filter(file => file.type === "file" && /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(file.name))
+        .map(file => file.name);
+    }
+    filenames.sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
+
     const images = document.createDocumentFragment();
-    filenames.forEach((filename) => {
+    filenames.forEach(filename => {
       const image = document.createElement("img");
-      image.src = `./media/rifa/${encodeURIComponent(filename)}`;
+      image.src = `${folderUrl}${encodeURIComponent(filename)}`;
       image.alt = "Premio de la rifa solidaria";
       image.loading = "lazy";
-      image.addEventListener("error", () => image.remove(), { once: true });
+      image.addEventListener("error", () => { image.remove(); updateGalleryControls(); }, { once: true });
       images.append(image);
     });
     gallery.replaceChildren(images);
-    galleryStatus.textContent = filenames.length ? "" : "Añade los nombres de las imágenes de media/rifa en media/rifa/imagenes.txt, uno por línea.";
-  } catch {
+    updateGalleryControls();
+    galleryStatus.textContent = filenames.length ? "" : "No se encontraron imágenes en media/rifa.";
+  } catch (error) {
+    console.warn("No se pudieron detectar las imágenes de la rifa:", error);
     gallery.replaceChildren();
-    galleryStatus.textContent = "Añade los nombres de las imágenes de media/rifa en media/rifa/imagenes.txt, uno por línea.";
+    galleryStatus.textContent = "No se pudieron detectar las imágenes de la rifa.";
   }
 }
 
