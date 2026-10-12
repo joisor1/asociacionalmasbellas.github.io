@@ -166,17 +166,6 @@ async function getAnimalImageUrls(folder) {
       console.info(`No se pudieron detectar las imágenes en GitHub para ${key}.`, error);
     }
 
-    try {
-      const response = await fetch(`${folderUrl}imagenes.txt`, { cache: "no-store" });
-      if (response.ok) {
-        const filenames = (await response.text()).split(/\r?\n/)
-          .map(filename => filename.trim())
-          .filter(filename => /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(filename));
-        if (filenames.length) return filenames.map(filename => `${folderUrl}${encodeURIComponent(filename)}`);
-      }
-    } catch (error) {
-      console.info(`No se pudo leer imagenes.txt de ${key}.`, error);
-    }
     return [];
   })();
   animalImageListCache.set(key, imagesPromise);
