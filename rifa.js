@@ -11,6 +11,8 @@ const gallery = document.querySelector("#raffle-gallery");
 const galleryStatus = document.querySelector("#raffle-gallery-status");
 const prizeGallery = document.querySelector("#raffle-prize-gallery");
 const prizeGalleryStatus = document.querySelector("#raffle-prize-gallery-status");
+const collaboratorsSection = document.querySelector(".raffle-collaborators");
+const collaboratorLinks = document.querySelector("#raffle-collaborator-links");
 const galleryPrevious = document.querySelector(".raffle-gallery-prev");
 const galleryNext = document.querySelector(".raffle-gallery-next");
 const purchasedIconPath = "./media/web/dog-footprint.svg";
@@ -127,12 +129,42 @@ async function loadPrizeImages() {
   }
 }
 
+function loadCollaborators(workbook) {
+  const sheetName = workbook.SheetNames.find(name => name.trim().toLocaleLowerCase("es") === "colaboradores");
+  if (!sheetName) return;
+
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, raw: false, defval: "" });
+  const collaborators = rows.slice(1)
+    .map(row => ({ name: String(row[0] ?? "").trim(), link: String(row[1] ?? "").trim() }))
+    .filter(item => item.name);
+  const links = document.createDocumentFragment();
+  collaborators.forEach(({ name, link }) => {
+    const button = document.createElement(link ? "a" : "button");
+    button.className = "raffle-collaborator-link";
+    if (link) {
+      button.href = link;
+      button.target = "_blank";
+      button.rel = "noopener noreferrer";
+    } else {
+      button.type = "button";
+      button.disabled = true;
+      button.setAttribute("aria-label", `${name}, enlace pendiente`);
+    }
+    button.textContent = name;
+    links.append(button);
+  });
+  if (!collaborators.length) return;
+  collaboratorLinks.replaceChildren(links);
+  collaboratorsSection.hidden = false;
+}
+
 async function loadRaffleNumbers() {
   try {
     const response = await fetch(workbookPath, { cache: "no-store" });
     if (!response.ok) throw new Error(`No se pudo descargar Rifa.xlsx (${response.status}).`);
 
     const workbook = XLSX.read(await response.arrayBuffer());
+    loadCollaborators(workbook);
     const sheet = workbook.Sheets.Sheet1;
     if (!sheet) throw new Error("Rifa.xlsx no contiene la hoja Sheet1.");
 

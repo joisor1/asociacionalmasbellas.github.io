@@ -2077,6 +2077,7 @@ h3 {
 .vida-story-heading .eyebrow { margin-bottom:2px; }
 .vida-story-heading h2 { margin:0; color:var(--green-dark); font-size:clamp(2.3rem,5vw,3.5rem); }
 .vida-story-copy { max-width:860px; }
+.vida-story-copy h3 { margin:24px 0 10px; color:var(--green-dark); font-size:1.35rem; }
 .vida-story-copy p, .vida-family-note { color:var(--text-light); font-size:1.03rem; line-height:1.75; }
 .vida-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:26px 0 30px; }
 .vida-gallery img { width:100%; height:280px; object-fit:contain; }
@@ -2155,9 +2156,11 @@ h3 {
 .raffle-prize-table th, .raffle-prize-table td { display:block; min-width:0; padding:12px 8px; border-bottom:1px solid var(--border); vertical-align:top; overflow-wrap:anywhere; }
 .raffle-prize-table th { color:var(--text-light); font-size:.8rem; }
 .raffle-prize-description { margin:16px 0; color:var(--text-light); }
-.raffle-gallery-carousel { position:relative; margin-top:18px; }
+.raffle-gallery-carousel { position:relative; margin-top:18px; container-type:inline-size; }
 .raffle-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; }
 .raffle-gallery-control { display:none; position:absolute; z-index:1; top:50%; width:38px; height:38px; place-items:center; transform:translateY(-50%); border:1px solid var(--border); border-radius:50%; background:rgba(255,255,255,.94); color:var(--green-dark); font-size:1.5rem; line-height:1; cursor:pointer; box-shadow:var(--shadow-sm); }
+.raffle-gallery-prev { left:8px; }
+.raffle-gallery-next { right:8px; }
 .raffle-gallery-control[hidden] { display:none !important; }
 .raffle-gallery:empty { display:none; }
 .raffle-gallery img { width:100%; aspect-ratio:1; border-radius:12px; object-fit:cover; }
@@ -2179,11 +2182,23 @@ h3 {
 .raffle-prize-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:12px; margin-top:18px; }
 .raffle-prize-gallery img { width:100%; height:220px; padding:8px; border:1px solid var(--border); border-radius:14px; background:var(--cream); object-fit:contain; }
 .raffle-prize-gallery:empty { display:none; }
+.raffle-collaborators { margin-top:22px; padding-top:18px; border-top:1px solid var(--border); }
+.raffle-collaborators h3 { margin-bottom:8px; color:var(--green-dark); font-size:1.15rem; }
+.raffle-collaborators > p { margin-bottom:12px; color:var(--text-light); }
+.raffle-collaborator-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr)); gap:10px; }
+.raffle-collaborator-link { display:flex; min-height:46px; align-items:center; justify-content:center; padding:10px 14px; border:1px solid var(--green-dark); border-radius:14px; background:var(--cream); color:var(--green-dark); font:inherit; font-weight:700; text-align:center; text-decoration:none; cursor:pointer; }
+.raffle-collaborator-link:hover, .raffle-collaborator-link:focus-visible { background:var(--green-dark); color:var(--white); }
+.raffle-collaborator-link:disabled, .raffle-collaborator-link:disabled:hover, .raffle-collaborator-link:disabled:focus-visible { opacity:1; transform:none; background:var(--cream); color:var(--green-dark); cursor:default; }
 .raffle-info[aria-labelledby="raffle-info-title"] p { text-align:justify; }
 .raffle-email { color:var(--purple); font-weight:800; }
 .raffle-back { max-width:760px; margin:24px auto 0; }
 .raffle-footer { padding:22px 16px; background:var(--green-dark); color:var(--white); text-align:center; font-size:.84rem; }
 .raffle-footer p { margin:0; }
+@container (max-width:229px) {
+  .raffle-gallery { display:flex; gap:0; overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scroll-behavior:smooth; scrollbar-width:thin; }
+  .raffle-gallery img { flex:0 0 100%; scroll-snap-align:center; }
+  .raffle-gallery-control { display:grid; }
+}
 @media(max-width:640px) {
   .raffle-gallery { display:flex; gap:0; overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scroll-behavior:smooth; scrollbar-width:thin; }
   .raffle-gallery img { flex:0 0 100%; scroll-snap-align:center; }
@@ -2223,3 +2238,6 @@ h3 {
   .raffle-layout { grid-template-columns:1fr; }
 }
 body { text-align:justify; }
+@media(max-width:768px) {
+  .hero-title { font-size:clamp(1.75rem,7.5vw,2.35rem); line-height:1.05; }
+}
