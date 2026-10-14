@@ -615,6 +615,12 @@ h3 {
     transition: transform 0.5s ease;
 }
 
+.animal-image.is-fallback {
+    object-fit: contain;
+    padding: 12px;
+    background: #f7f3eb;
+}
+
 .animal-card:hover .animal-image {
     transform: scale(1.06);
 }

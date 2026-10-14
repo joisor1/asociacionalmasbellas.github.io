@@ -27,7 +27,7 @@ document.addEventListener("keydown", event => {
 const workbookUrl = "./assets/database/Animales.xlsx";
 const phoneWorkbookUrl = "./assets/database/info.xlsx";
 const phoneSheetName = "telefonos";
-const fallbackImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80";
+const fallbackImage = "./media/web/logo.png";
 const maxAnimals = 4;
 const defaultAdoptionPhone = "34692160589";
 const contactPhoneFallbacks = new Map([["judith", "34608678808"]]);
@@ -102,11 +102,12 @@ function renderAnimals(animals) {
     const name = escapeHtml(animal.name);
     const image = safeImageUrl(animal.folder ? `./media/animales/${encodeURIComponent(animal.folder)}/00.jpg` : fallbackImage);
     const meta = [animal.age, animal.gender, animal.breed].filter(Boolean).map(escapeHtml).join(" · ");
-    return `<article class="animal-card" tabindex="0" aria-haspopup="dialog" aria-label="Ver información de ${name}" data-animal-index="${index}"><div class="animal-image-wrapper"><img class="animal-image" src="${escapeHtml(image)}" alt="${name}" loading="lazy" data-animal-folder="${escapeHtml(animal.folder)}" data-fallback="${escapeHtml(fallbackImage)}"></div><div class="animal-content"><h3 class="animal-name">${name}</h3><p class="animal-meta">${meta}</p><p class="animal-description">${escapeHtml(animal.description)}</p><button class="btn btn-primary btn-small" type="button">Conocer más</button></div></article>`;
+    return `<article class="animal-card" tabindex="0" aria-haspopup="dialog" aria-label="Ver información de ${name}" data-animal-index="${index}"><div class="animal-image-wrapper"><img class="animal-image${animal.folder ? "" : " is-fallback"}" src="${escapeHtml(image)}" alt="${name}" loading="lazy" data-animal-folder="${escapeHtml(animal.folder)}" data-fallback="${escapeHtml(fallbackImage)}"></div><div class="animal-content"><h3 class="animal-name">${name}</h3><p class="animal-meta">${meta}</p><p class="animal-description">${escapeHtml(animal.description)}</p><button class="btn btn-primary btn-small" type="button">Conocer más</button></div></article>`;
   }).join("");
   grid.querySelectorAll("img[data-fallback]").forEach(image => {
     image.addEventListener("error", () => {
       image.src = image.dataset.fallback;
+      image.classList.add("is-fallback");
       image.removeAttribute("data-fallback");
     }, { once: true });
   });

@@ -1,6 +1,7 @@
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
 
 const workbookPath = "./assets/database/Rifa.xlsx";
+const collaboratorsWorkbookPath = "./assets/database/info.xlsx";
 const numberGrid = document.querySelector("#raffle-numbers");
 const status = document.querySelector("#raffle-number-status");
 const price = document.querySelector("#raffle-price");
@@ -129,33 +130,56 @@ async function loadPrizeImages() {
   }
 }
 
-function loadCollaborators(workbook) {
-  const sheetName = workbook.SheetNames.find(name => name.trim().toLocaleLowerCase("es") === "colaboradores");
-  if (!sheetName) return;
+function externalUrl(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(raw) ? raw : `https://${raw}`);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
 
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, raw: false, defval: "" });
-  const collaborators = rows.slice(1)
-    .map(row => ({ name: String(row[0] ?? "").trim(), link: String(row[1] ?? "").trim() }))
-    .filter(item => item.name);
-  const links = document.createDocumentFragment();
-  collaborators.forEach(({ name, link }) => {
-    const button = document.createElement(link ? "a" : "button");
-    button.className = "raffle-collaborator-link";
-    if (link) {
-      button.href = link;
-      button.target = "_blank";
-      button.rel = "noopener noreferrer";
-    } else {
-      button.type = "button";
-      button.disabled = true;
-      button.setAttribute("aria-label", `${name}, enlace pendiente`);
-    }
-    button.textContent = name;
-    links.append(button);
-  });
-  if (!collaborators.length) return;
-  collaboratorLinks.replaceChildren(links);
-  collaboratorsSection.hidden = false;
+async function loadCollaborators() {
+  try {
+    const response = await fetch(collaboratorsWorkbookPath, { cache: "no-store" });
+    if (!response.ok) throw new Error(`No se pudo descargar info.xlsx (${response.status}).`);
+
+    const workbook = XLSX.read(await response.arrayBuffer());
+    const sheetName = workbook.SheetNames.find(name => name.trim().toLocaleLowerCase("es") === "colaboradores");
+    if (!sheetName) throw new Error("info.xlsx no contiene la hoja Colaboradores.");
+
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, raw: false, defval: "" });
+    const collaborators = rows.slice(1)
+      .map(row => ({
+        name: String(row[0] ?? "").trim(),
+        link: externalUrl(row[1]),
+        type: String(row[2] ?? "").trim().toLocaleLowerCase("es")
+      }))
+      .filter(item => item.name && item.type === "rifa");
+    const links = document.createDocumentFragment();
+    collaborators.forEach(({ name, link }) => {
+      const button = document.createElement(link ? "a" : "button");
+      button.className = "raffle-collaborator-link";
+      if (link) {
+        button.href = link;
+        button.target = "_blank";
+        button.rel = "noopener noreferrer";
+      } else {
+        button.type = "button";
+        button.disabled = true;
+        button.setAttribute("aria-label", `${name}, enlace pendiente`);
+      }
+      button.textContent = name;
+      links.append(button);
+    });
+    if (!collaborators.length) return;
+    collaboratorLinks.replaceChildren(links);
+    collaboratorsSection.hidden = false;
+  } catch (error) {
+    console.error("No se pudieron cargar los colaboradores desde info.xlsx:", error);
+  }
 }
 
 async function loadRaffleNumbers() {
@@ -164,7 +188,6 @@ async function loadRaffleNumbers() {
     if (!response.ok) throw new Error(`No se pudo descargar Rifa.xlsx (${response.status}).`);
 
     const workbook = XLSX.read(await response.arrayBuffer());
-    loadCollaborators(workbook);
     const sheet = workbook.Sheets.Sheet1;
     if (!sheet) throw new Error("Rifa.xlsx no contiene la hoja Sheet1.");
 
@@ -219,3 +242,4 @@ async function loadRaffleNumbers() {
 }
 
 loadRaffleNumbers();
+loadCollaborators();

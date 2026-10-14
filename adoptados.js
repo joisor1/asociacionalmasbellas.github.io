@@ -1,7 +1,7 @@
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
 const workbookUrl = "./assets/database/Animales.xlsx";
 const adoptedPhotosApiUrl = "https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/animales/adoptados%20varios?ref=main";
-const fallbackImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80";
+const fallbackImage = "./media/web/logo.png";
 const grid = document.querySelector(".adopted-grid");
 const status = document.querySelector("#adopted-status");
 const navToggle = document.querySelector(".mobile-nav-toggle");
