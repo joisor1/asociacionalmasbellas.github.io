@@ -34,10 +34,21 @@ async function loadNews() {
     const dateIndex = headers.indexOf("fecha");
     const textIndex = headers.indexOf("noticia");
     if (dateIndex < 0 || textIndex < 0) throw new Error("Faltan las columnas Fecha y Noticia.");
-    const news = rows.map(row => ({
+    const news = rows.map((row, sourceIndex) => ({
       text: String(row[textIndex] ?? "").trim(),
-      date: newsDate(row[dateIndex], XLSX, Boolean(workbook.Workbook?.WBProps?.date1904))
-    })).filter(item => item.text).sort((a, b) => (b.date?.getTime() ?? -Infinity) - (a.date?.getTime() ?? -Infinity));
+      date: newsDate(row[dateIndex], XLSX, Boolean(workbook.Workbook?.WBProps?.date1904)),
+      sourceIndex
+    })).filter(item => item.text).sort((a, b) => {
+      if (a.date && b.date) {
+        const dateDifference = b.date.getTime() - a.date.getTime();
+        if (dateDifference) return dateDifference;
+      } else if (a.date) {
+        return -1;
+      } else if (b.date) {
+        return 1;
+      }
+      return b.sourceIndex - a.sourceIndex;
+    });
     const formatter = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
     const cards = news.map(item => {
       const article = document.createElement("article");
