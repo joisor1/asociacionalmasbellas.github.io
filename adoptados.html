@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
   <script type="module" src="adoptados.js"></script>
 </head>
 <body class="adopted-page">
@@ -25,9 +25,16 @@
   <main class="adopted-main">
     <section class="adopted-section section">
       <div class="container">
-        <div class="section-header adoption-header"><p class="eyebrow">Finales felices</p><h1>Adoptados</h1><p>Un hogar, una familia y una nueva oportunidad.</p></div>
+        <div class="section-header adoption-header">
+          <p class="eyebrow">Finales felices</p>
+          <div class="adopted-heading">
+            <h1>Adoptados</h1>
+            <button id="adopted-view-toggle" class="btn btn-secondary btn-small" type="button" aria-controls="adopted-grid" hidden>Ver como galería</button>
+          </div>
+          <p>Un hogar, una familia y una nueva oportunidad.</p>
+        </div>
         <p id="adopted-status" class="data-notice" role="status" aria-live="polite">Cargando animales adoptados…</p>
-        <div class="adopted-grid" aria-live="polite"></div>
+        <div id="adopted-grid" class="adopted-grid" aria-live="polite"></div>
       </div>
     </section>
   </main>

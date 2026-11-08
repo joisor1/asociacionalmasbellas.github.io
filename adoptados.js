@@ -1,8 +1,10 @@
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
+import { getAnimalImageUrls } from "./animal-images.js";
 const workbookUrl = "./assets/database/Animales.xlsx";
 const adoptedPhotosApiUrl = "https://api.github.com/repos/joisor1/asociacionalmasbellas.github.io/contents/media/animales/adoptados%20varios?ref=main";
 const fallbackImage = "./media/web/logo.png";
 const grid = document.querySelector(".adopted-grid");
+const viewToggle = document.querySelector("#adopted-view-toggle");
 const status = document.querySelector("#adopted-status");
 const navToggle = document.querySelector(".mobile-nav-toggle");
 const navMenu = document.querySelector("#main-nav-menu");
@@ -12,6 +14,13 @@ const imageListCache = new Map();
 let galleryImages = [];
 let galleryIndex = 0;
 let galleryRequestId = 0;
+
+viewToggle.addEventListener("click", () => {
+  const galleryMode = grid.classList.toggle("is-gallery");
+  viewToggle.textContent = galleryMode ? "Ver como mural" : "Ver como galería";
+  if (!galleryMode) layoutMural();
+});
+viewToggle.hidden = false;
 
 navToggle?.addEventListener("click", () => {
   const isOpen = navToggle.getAttribute("aria-expanded") === "true";
@@ -48,12 +57,10 @@ function getColumn(headers, ...names) {
 function renderAdopted(animals) {
   grid.innerHTML = animals.map(animal => {
     const folder = String(animal.folder ?? "").trim().replace(/[\\/]/g, "");
-    const folderPath = `./media/animales/${encodeURIComponent(folder)}/`;
     const name = String(animal.name).trim();
     const safeFolder = folder.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-    const imageSource = folder ? folderPath + "00.jpg" : fallbackImage;
     const safeName = name.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-    return `<article class="adopted-card" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Ver fotos de ${safeName}" data-animal-name="${safeName}" data-animal-folder="${safeFolder}"><div class="adopted-image-frame"><img class="adopted-image" src="${imageSource}" alt="${safeName}" loading="lazy" data-folder="${safeFolder}" data-fallback="${fallbackImage}"></div></article>`;
+    return `<article class="adopted-card" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Ver fotos de ${safeName}" data-animal-name="${safeName}" data-animal-folder="${safeFolder}"><div class="adopted-image-frame"><img class="adopted-image" src="${fallbackImage}" alt="${safeName}" loading="lazy" data-folder="${safeFolder}"></div></article>`;
   }).join("");
 
   grid.querySelectorAll(".adopted-card").forEach(card => {
@@ -72,10 +79,6 @@ function renderAdopted(animals) {
       image.closest(".adopted-card")?.style.setProperty("--adopted-image-ratio", String(ratio));
       layoutMural();
     });
-    image.addEventListener("error", () => {
-      image.src = image.dataset.fallback;
-      image.dataset.fallback = "";
-    }, { once: true });
     loadFirstImage(image, image.dataset.folder);
   });
   layoutMural();
@@ -149,7 +152,7 @@ async function appendAdoptedPhotoCards() {
   }
 }
 function layoutMural() {
-  if (!grid?.children.length) return;
+  if (!grid?.children.length || grid.classList.contains("is-gallery")) return;
   const width = grid.clientWidth;
   const height = grid.clientHeight;
   if (!width || !height) return;
@@ -173,17 +176,24 @@ function layoutMural() {
     const left = Math.max(0, Number(card.dataset.muralX) * Math.max(0, width - size));
     const top = Math.max(0, Number(card.dataset.muralY) * Math.max(0, height - cardHeight));
 
-    card.style.width = `${size}px`;
-    card.style.left = `${left}px`;
-    card.style.top = `${top}px`;
-    card.style.zIndex = card.dataset.muralLayer;
-    card.style.transform = `rotate(${card.dataset.muralRotation}deg)`;
+    card.style.setProperty("--mural-card-width", `${size}px`);
+    card.style.setProperty("--mural-card-left", `${left}px`);
+    card.style.setProperty("--mural-card-top", `${top}px`);
+    card.style.setProperty("--mural-card-layer", card.dataset.muralLayer);
+    card.style.setProperty("--mural-card-rotation", `${card.dataset.muralRotation}deg`);
   });
 }
 
 async function loadFirstImage(image, folder) {
   const images = await getAnimalImages(folder);
-  if (images.length) image.src = images[0];
+  const candidates = [...new Set([...images, fallbackImage])].values();
+  const showNext = () => {
+    const { value } = candidates.next();
+    if (!value) return;
+    if (value !== fallbackImage) image.addEventListener("error", showNext, { once: true });
+    image.src = value;
+  };
+  showNext();
 }
 
 function getAnimalImages(folder) {
@@ -193,15 +203,20 @@ function getAnimalImages(folder) {
   const folderPath = `./media/animales/${encodeURIComponent(key)}/`;
   const imagesPromise = fetch(`${folderPath}imagenes.txt`, { cache: "no-store" })
     .then(async response => {
-      if (!response.ok) return [`${folderPath}00.jpg`];
+      if (!response.ok) return [];
       const filenames = (await response.text()).split(/\r?\n/)
         .map(line => line.trim())
         .filter(line => /^[^/\\]+\.(avif|gif|jpe?g|png|webp)$/i.test(line));
-      return filenames.length ? filenames.map(filename => `${folderPath}${encodeURIComponent(filename)}`) : [`${folderPath}00.jpg`];
+      return filenames.map(filename => `${folderPath}${encodeURIComponent(filename)}`);
     })
     .catch(error => {
       console.warn(`No se pudo leer la lista de imágenes de ${key}:`, error);
-      return [`${folderPath}00.jpg`];
+      return [];
+    })
+    .then(async listed => {
+      if (listed.length) return listed;
+      const detected = await getAnimalImageUrls(key);
+      return detected.length ? detected : [`${folderPath}00.jpg`];
     });
   imageListCache.set(key, imagesPromise);
   return imagesPromise;
@@ -241,7 +256,7 @@ async function openAdoptedGallery(name, folder, singlePhoto = "") {
   if (!dialog.open) dialog.showModal();
   const images = singlePhoto ? [singlePhoto] : await getAnimalImages(folder);
   if (requestId !== galleryRequestId || !dialog.open) return;
-  galleryImages = images;
+  galleryImages = [...images];
   galleryIndex = 0;
   showAdoptedGalleryImage(0, singlePhoto ? "" : name);
 }
@@ -285,7 +300,8 @@ async function loadAdopted() {
     const folderIndex = getColumn(headers, "carpeta", "folder");
     if (nameIndex >= 0) {
       animals = rows.map(row => ({ name: String(row[nameIndex] ?? "").trim(), folder: folderIndex < 0 ? "" : String(row[folderIndex] ?? "").trim() }))
-        .filter(animal => animal.name);
+        .filter(animal => animal.name)
+        .reverse();
     } else {
       console.warn("Sheet2 no tiene columna Nombre; se añadirán las fotos detectadas en la carpeta.");
     }
